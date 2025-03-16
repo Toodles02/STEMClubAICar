@@ -54,8 +54,11 @@ def train(epochs, lr, model_path=None):
         model.eval() 
         correct = 0 
         total = 0 
+        total_loss = 0
         if exit_flag:
             break 
+        total_labels = [] 
+        total_preds = [] 
         with torch.no_grad():
             for images, labels in valid_loader:
                 images, labels = images.to(device), labels.to(device)
@@ -67,22 +70,26 @@ def train(epochs, lr, model_path=None):
 
                 outputs = model(images)
                 loss = criterion(outputs, labels)
-                running_loss = loss.item()
+                total_loss += loss.item()
 
                 _, pred = torch.max(outputs, dim=1)
                 correct += (pred == labels).sum().item() 
                 total += labels.size(0)
 
-                if random.random() < 0.05:
-                    cm = confusion_matrix(labels, pred)
-                    display = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(30)))
-                    display.plot(cmap=plt.cm.Blues)
-                    plt.title(f"Confusion matrix at epoch {e+1}")
-                    plt.savefig(f"cm/confusion_{e+1}.png")
-                    plt.close()
-                    print("Generated confusion matrix")
+                total_preds.extend(pred.cpu().numpy())
+                total_labels.extend(labels.cpu().numpy())
+
+        cm = confusion_matrix(total_labels, total_preds)
+        display = ConfusionMatrixDisplay(confusion_matrix=cm)
+        display.plot(cmap=plt.cm.Blues)
+        plt.title(f"Confusion matrix at epoch {e+1}")
+        plt.savefig(f"cm/confusion_{e+1}.png")
+        plt.close()
+        print("Generated confusion matrix")
+
         elapsed = time.time() - start 
         accuracy = (correct / total) * 100 
+        running_loss = total_loss / total
         print(f"Epoch: [{e+1}/{epochs}], Accuracy: {accuracy:.2f}%, Loss: {running_loss:.4f}, Elapsed: {elapsed:.2f}s")
 
 
@@ -91,5 +98,5 @@ def train(epochs, lr, model_path=None):
     return accuracy
 
 if __name__ == "__main__":
-    train(30, 1e-6, "models/model_94.pth")
+    train(15, 1e-5, "models/model_96.pth")
     
