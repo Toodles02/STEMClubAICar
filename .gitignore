@@ -7,7 +7,4 @@ venv/
 .vscode/
 *.db
 *.sqlite
-*.pth
-models/
-cm/
 git 
