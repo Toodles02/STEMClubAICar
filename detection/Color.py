@@ -6,11 +6,10 @@ color = (255, 255, 255)
 
 # Define the lower and upper boundaries for each color in HSV space
 colors = {
-    'blue': [np.array([95, 255, 85]), np.array([120, 255, 255])],
-    'red': [np.array([161, 165, 127]), np.array([178, 255, 255])],
-    'yellow': [np.array([16, 0, 99]), np.array([39, 255, 255])],
-    'green': [np.array([33, 19, 105]), np.array([77, 255, 255])]
-}
+        'blue': [np.array([101, 50, 38]), np.array([110, 255, 255])],
+        'red': [np.array([160, 20, 70]), np.array([190, 255, 255])],
+        'yellow': [np.array([16, 0, 99]), np.array([39, 255, 255])],
+        'green': [np.array([33, 19, 105]), np.array([77, 255, 255])]}
 
 def find_color(frame, points):
     mask = cv.inRange(frame, points[0], points[1])  # Create mask with boundaries
@@ -19,13 +18,12 @@ def find_color(frame, points):
     
     for c in cnts:
         area = cv.contourArea(c)  # Find how big the contour is
-        if area > 5000:  # Only if contour is big enough, then
+        if area > 1000:  # Only if contour is big enough, then
             M = cv.moments(c)
             if M['m00'] != 0:
                 cx = int(M['m10'] / M['m00'])  # Calculate X position
                 cy = int(M['m01'] / M['m00'])  # Calculate Y position
                 return c, cx, cy
-    
     return None  # Return None if no valid color is found
 
 def check_color(frame):
@@ -39,31 +37,34 @@ def check_color(frame):
             cv.circle(frame, (cx, cy), 7, color, -1)  # Draw circle
             cv.putText(frame, name, (cx, cy), cv.FONT_HERSHEY_SIMPLEX, 1, color, 1)  # Put text
             
-            # Check if color is red or green
             if name == 'red':
-                return 'stop'  # Red color: Stop the car
+                return 'stop'
             elif name == 'green':
-                return 'keep going'  # Green color: Keep going
-    
+                return 'keep going'
     return 'continue'  # No red or green detected, continue normally
 
+# Capture video from the camera
 cap = cv.VideoCapture(0)
 
-while cap.isOpened():  # Main loop
-    _, frame = cap.read()
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: Could not capture a frame. Check the camera.")
+        break
+    
     action = check_color(frame)  # Check the frame for a color action
     
     if action == 'stop':
-        print("Stop the car!")  # Add your car stop code here
+        print("Stop the car!")  
     elif action == 'keep going':
-        print("Keep going!")  # Add your car continue code here
+        print("Keep going!")  
     elif action == 'continue':
         print("No red or green detected. Continue normally.")
     
-    cv.imshow("Frame: ", frame)  # Show image
+    cv.imshow("Frame: ", frame)  # Show the processed frame
     
-    if cv.waitKey(1) == ord('q'):
-        break
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        break  # Exit the loop when 'q' is pressed
 
 cap.release()  # Release the camera
-cv.destroyAllWindows()  # Close all windows opened by OpenCV
+cv.destroyAllWindows()  # Close all windows
