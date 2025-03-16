@@ -60,7 +60,8 @@ def load_data():
 
     augmentation = transforms.Compose([
         transforms.Resize((416, 416)),
-        transforms.RandomHorizontalFlip(p=0.1),
+        transforms.RandomHorizontalFlip(p=0.3),
+        transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std)
     ])

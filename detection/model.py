@@ -26,7 +26,7 @@ class TrafficSignDetector(nn.Module):
             nn.AdaptiveAvgPool2d((4, 4))
         )
         self.linear_layer = nn.Sequential(
-            nn.Dropout(0.1),
+            nn.Dropout(0.25),
             nn.Flatten(),
             nn.Linear(512 * 4 * 4, 1024),
             nn.Dropout(0.5),

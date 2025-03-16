@@ -3,24 +3,27 @@ import torch.nn as nn
 import torch.optim as optim
 import time 
 import keyboard
+import matplotlib.pyplot as plt
+import random 
 from data import load_data
 from model import TrafficSignDetector
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-
-def train():
+def train(epochs, lr, model_path=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = TrafficSignDetector().to(device)
+    if model_path:
+        state_dict = torch.load(model_path)
+        model.load_state_dict(state_dict)
+        print(f"Loaded previous model from {model_path}")
 
     train_loader, valid_loader, _ = load_data() 
-
-    epochs = 1
-    lr = 1e-3
 
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    print("Training...")
+    print(f"Training for {epochs} epochs with rate {lr}...")
 
     exit_flag = False 
 
@@ -69,6 +72,15 @@ def train():
                 _, pred = torch.max(outputs, dim=1)
                 correct += (pred == labels).sum().item() 
                 total += labels.size(0)
+
+                if random.random() < 0.05:
+                    cm = confusion_matrix(labels, pred)
+                    display = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=list(range(30)))
+                    display.plot(cmap=plt.cm.Blues)
+                    plt.title(f"Confusion matrix at epoch {e+1}")
+                    plt.savefig(f"cm/confusion_{e+1}.png")
+                    plt.close()
+                    print("Generated confusion matrix")
         elapsed = time.time() - start 
         accuracy = (correct / total) * 100 
         print(f"Epoch: [{e+1}/{epochs}], Accuracy: {accuracy:.2f}%, Loss: {running_loss:.4f}, Elapsed: {elapsed:.2f}s")
@@ -76,6 +88,8 @@ def train():
 
     torch.save(model.state_dict(), f"models/model_{accuracy:.0f}.pth")
     print("Model saved!")
+    return accuracy
 
 if __name__ == "__main__":
-    train() 
+    train(30, 1e-6, "models/model_94.pth")
+    
