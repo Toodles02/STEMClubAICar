@@ -50,10 +50,11 @@ def predict(image):
     model.load_state_dict(state_dict)
     
 
-    image = process(image).to(device)
+    image = process(image).unsqueeze(0)
+    image = image.to(device)
 
     with torch.no_grad():
         output = model(image)
-        _, pred = torch.max(output)
+        pred = torch.argmax(output).item()
         return human_label(pred)
 
