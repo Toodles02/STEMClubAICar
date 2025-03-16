@@ -3,6 +3,7 @@ import time
 
 class TrafficSignDetector(nn.Module):
     def __init__(self):
+        super(TrafficSignDetector, self).__init__() 
         self.conv_layer = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, padding=1),
             nn.MaxPool2d(2, 2),
@@ -30,15 +31,11 @@ class TrafficSignDetector(nn.Module):
             nn.Linear(512 * 4 * 4, 1024),
             nn.Dropout(0.5),
             nn.Linear(1024, 256),
-            nn.Linear(256, 29)
+            nn.Linear(256, 30)
         )
         
     def forward(self, x):
-        start = time.time() 
         x = self.conv_layer(x)
         x = self.linear_layer(x)
-        end = time.time()
-        elapsed = end - start 
-        print(f"{elapsed:.6f} seconds")
         return x 
     

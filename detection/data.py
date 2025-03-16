@@ -45,36 +45,41 @@ class TrafficSignDataset(Dataset):
         return image, label
     
 
-print("Loading data...")
 
-mean = [0.3774, 0.3560, 0.3700]
-std = [0.1897, 0.1858, 0.1921]
-transform = transforms.Compose([
-    transforms.Resize((416, 416)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=mean, std=std)
-])
 
-augmentation = transforms.Compose([
-    transforms.Resize((416, 416)),
-    transforms.RandomHorizontalFlip(p=0.1),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=mean, std=std)
-])
+def load_data():
+    print("Loading data...")
 
-annotations_file = "_annotations.coco.json"
+    mean = [0.3774, 0.3560, 0.3700]
+    std = [0.1897, 0.1858, 0.1921]
+    transform = transforms.Compose([
+        transforms.Resize((416, 416)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std)
+    ])
 
-train_path = os.path.join(PATH, 'train')
-train_set = TrafficSignDataset(train_path, os.path.join(train_path, annotations_file), augmentation)
+    augmentation = transforms.Compose([
+        transforms.Resize((416, 416)),
+        transforms.RandomHorizontalFlip(p=0.1),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=mean, std=std)
+    ])
 
-valid_path = os.path.join(PATH, 'valid')
-valid_set = TrafficSignDataset(valid_path, os.path.join(valid_path, annotations_file), transform)
+    annotations_file = "_annotations.coco.json"
 
-test_path = os.path.join(PATH, 'test')
-test_set = TrafficSignDataset(test_path, os.path.join(test_path, annotations_file), transform)
+    train_path = os.path.join(PATH, 'train')
+    train_set = TrafficSignDataset(train_path, os.path.join(train_path, annotations_file), augmentation)
 
-train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4)
-valid_loader = DataLoader(valid_set, batch_size=32, shuffle=False, num_workers=4)
-test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4) 
+    valid_path = os.path.join(PATH, 'valid')
+    valid_set = TrafficSignDataset(valid_path, os.path.join(valid_path, annotations_file), transform)
 
-print("Loaded data!")
+    test_path = os.path.join(PATH, 'test')
+    test_set = TrafficSignDataset(test_path, os.path.join(test_path, annotations_file), transform)
+
+    train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(valid_set, batch_size=32, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4) 
+    
+    print("Loaded data!")
+    
+    return train_loader, valid_loader, test_loader
