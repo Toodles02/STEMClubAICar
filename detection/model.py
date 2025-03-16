@@ -1,5 +1,6 @@
 import torch.nn as nn 
-import time 
+import torch 
+from data import process, human_label
 
 class TrafficSignDetector(nn.Module):
     def __init__(self):
@@ -39,3 +40,20 @@ class TrafficSignDetector(nn.Module):
         x = self.linear_layer(x)
         return x 
     
+best_model = 'models/model_98.pth'
+
+def predict(image): 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model = TrafficSignDetector().to(device)
+    state_dict = torch.load(best_model)
+    model.load_state_dict(state_dict)
+    
+
+    image = process(image).to(device)
+
+    with torch.no_grad():
+        output = model(image)
+        _, pred = torch.max(output)
+        return human_label(pred)
+

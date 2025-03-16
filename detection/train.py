@@ -3,11 +3,9 @@ import torch.nn as nn
 import torch.optim as optim
 import time 
 import keyboard
-import matplotlib.pyplot as plt
-import random 
 from data import load_data
 from model import TrafficSignDetector
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
 
 def train(epochs, lr, model_path=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -57,8 +55,6 @@ def train(epochs, lr, model_path=None):
         total_loss = 0
         if exit_flag:
             break 
-        total_labels = [] 
-        total_preds = [] 
         with torch.no_grad():
             for images, labels in valid_loader:
                 images, labels = images.to(device), labels.to(device)
@@ -75,21 +71,9 @@ def train(epochs, lr, model_path=None):
                 _, pred = torch.max(outputs, dim=1)
                 correct += (pred == labels).sum().item() 
                 total += labels.size(0)
-
-                total_preds.extend(pred.cpu().numpy())
-                total_labels.extend(labels.cpu().numpy())
-
-        cm = confusion_matrix(total_labels, total_preds)
-        display = ConfusionMatrixDisplay(confusion_matrix=cm)
-        display.plot(cmap=plt.cm.Blues)
-        plt.title(f"Confusion matrix at epoch {e+1}")
-        plt.savefig(f"cm/confusion_{e+1}.png")
-        plt.close()
-        print("Generated confusion matrix")
-
         elapsed = time.time() - start 
         accuracy = (correct / total) * 100 
-        running_loss = total_loss / total
+        running_loss = total_loss / len(valid_loader)
         print(f"Epoch: [{e+1}/{epochs}], Accuracy: {accuracy:.2f}%, Loss: {running_loss:.4f}, Elapsed: {elapsed:.2f}s")
 
 
@@ -98,5 +82,5 @@ def train(epochs, lr, model_path=None):
     return accuracy
 
 if __name__ == "__main__":
-    train(15, 1e-5, "models/model_96.pth")
+    train(10, 1e-6, "models/model_98.pth")
     
