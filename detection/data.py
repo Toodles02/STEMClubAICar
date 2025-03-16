@@ -1,12 +1,8 @@
-import json
 import os
-import torch
 import torchvision.transforms as transforms 
-import random 
-from torch.utils.data import Dataset, Subset, DataLoader
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 from pycocotools.coco import COCO
-from pycocotools.mask import encode, decode, area
 
 
 PATH = "C:/Users/rohan/OneDrive/Desktop/Datasets/Traffic/"
