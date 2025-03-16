@@ -5,62 +5,80 @@ import torchvision.transforms as transforms
 import random 
 from torch.utils.data import Dataset, Subset, DataLoader
 from PIL import Image
+from pycocotools.coco import COCO
+from pycocotools.mask import encode, decode, area
 
 
-PATH = "D:/Rohan Stuff/Datasets/Traffic_Dataset/annotations/"
+PATH = "C:/Users/rohan/OneDrive/Desktop/Datasets/Traffic/"
 
-# 347 Labels, 42k images 
+# 10k images 
 
 class TrafficSignDataset(Dataset):
-    def __init__(self, image_folder, annotation_folder, transform=None):
+    def __init__(self, image_folder, annotations_path, transform=None):
         self.image_folder = image_folder
-        self.annotation_folder = annotation_folder
-        self.image_keys = [f.split('.')[0] for f in os.listdir(self.image_folder)] 
+        self.annotations_path = annotations_path 
         self.transform = transform
-    def load_annotation(self, image_key):
-        annotation_path = os.path.join(self.annotation_folder, f"{image_key}.json")
-        if os.path.exists(annotation_path):
-            with open(annotation_path, 'r') as f:
-                return json.load(f)
-        raise FileNotFoundError(f'Could not find annotation for image key {image_key}')
+        self.images = [] 
+
+        coco = COCO(os.path.join(image_folder, annotations_path))
+        for img in coco.imgs.values(): 
+            img_id = img['id']
+            ann_ids = coco.getAnnIds(imgIds=img_id)
+            annotations = coco.loadAnns(ann_ids)
+
+            if annotations:
+                label = annotations[0]['category_id']
+            else:
+                continue 
+
+            img_path = os.path.join(image_folder, img['file_name'])
+            
+
+            self.images.append((img_path, label))
+
     def __len__(self):
-        return len(self.image_keys)
+        return len(self.images)
     def __getitem__(self, idx):
-        image_key = self.image_keys[idx]
-        image_path = os.path.join(self.image_folder, f"{image_key}.jpg")
+        img_path, label = self.images[idx]
 
-        image = Image.open(image_path).convert('RGB')
-    
-        anno = self.load_annotation(image_key)
-        label = anno['objects'][0]['label'] 
+        image = Image.open(img_path).convert('RGB')
 
-        if self.transform: 
+        if self.transform:
             image = self.transform(image)
 
         return image, label
     
 
-image_folder = 'images'
-annotations_folder = 'mtsd_v2_fully_annotated/annotations' 
+print("Loading data...")
 
-
-
-mean = [0.4270, 0.4716, 0.4838]
-std = [0.2461, 0.2567, 0.2902] 
-
+mean = [0.3774, 0.3560, 0.3700]
+std = [0.1897, 0.1858, 0.1921]
 transform = transforms.Compose([
-transforms.Resize((128, 128)),
-transforms.ToTensor(), 
-transforms.Normalize(mean, std)
+    transforms.Resize((416, 416)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std)
 ])
 
-dataset = TrafficSignDataset(PATH + image_folder, PATH + annotations_folder, transform=transform)
+augmentation = transforms.Compose([
+    transforms.Resize((416, 416)),
+    transforms.RandomHorizontalFlip(p=0.1),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std)
+])
 
-sample_size = 5000 
+annotations_file = "_annotations.coco.json"
 
-indices = random.sample(range(len(dataset)), sample_size)
+train_path = os.path.join(PATH, 'train')
+train_set = TrafficSignDataset(train_path, os.path.join(train_path, annotations_file), augmentation)
 
-sample = Subset(dataset, indices)
+valid_path = os.path.join(PATH, 'valid')
+valid_set = TrafficSignDataset(valid_path, os.path.join(valid_path, annotations_file), transform)
 
+test_path = os.path.join(PATH, 'test')
+test_set = TrafficSignDataset(test_path, os.path.join(test_path, annotations_file), transform)
 
+train_loader = DataLoader(train_set, batch_size=32, shuffle=True, num_workers=4)
+valid_loader = DataLoader(valid_set, batch_size=32, shuffle=False, num_workers=4)
+test_loader = DataLoader(test_set, batch_size=32, shuffle=False, num_workers=4) 
 
+print("Loaded data!")
