@@ -4,12 +4,12 @@ import imutils
 
 color = (255, 255, 255)
 
-# Define the lower and upper boundaries for each color in HSV space
+# The lower and upper boundaries for each color in HSV space
 colors = {
-        'blue': [np.array([101, 50, 38]), np.array([110, 255, 255])],
-        'red': [np.array([160, 20, 70]), np.array([190, 255, 255])],
-        'yellow': [np.array([16, 0, 99]), np.array([39, 255, 255])],
-        'green': [np.array([33, 19, 105]), np.array([77, 255, 255])]}
+        'red': [np.array([0, 50, 50]), np.array([10, 255, 255])],
+        'red': [np.array([170, 50, 50]), np.array([180, 255, 255])],
+        'green': [np.array([35, 50, 50]), np.array([85, 255, 255])],
+        'green': [np.array([85, 50, 50]), np.array([131, 255, 255])],}
 
 def find_color(frame, points):
     mask = cv.inRange(frame, points[0], points[1])  # Create mask with boundaries
@@ -65,6 +65,4 @@ while cap.isOpened():
     
     if cv.waitKey(1) & 0xFF == ord('q'):
         break  # Exit the loop when 'q' is pressed
-
-cap.release()  # Release the camera
-cv.destroyAllWindows()  # Close all windows
+    
