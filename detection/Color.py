@@ -45,22 +45,22 @@ def check_color(frame):
 
 # Capture video from the camera
 cap = cv.VideoCapture(0)
+last = ""
 
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         print("Error: Could not capture a frame. Check the camera.")
         break
-    
     action = check_color(frame)  # Check the frame for a color action
-    
-    if action == 'stop':
-        print("Stop the car!")  
-    elif action == 'keep going':
-        print("Keep going!")  
-    elif action == 'continue':
-        print("No red or green detected. Continue normally.")
-    
+    if last != action:
+        if action == 'stop':
+            print("Stop the car!")  
+        elif action == 'keep going':
+            print("Keep going!")  
+        elif action == 'continue':
+            print("No red or green detected. Continue normally.")
+    last = action
     cv.imshow("Frame: ", frame)  # Show the processed frame
     
     if cv.waitKey(1) & 0xFF == ord('q'):
