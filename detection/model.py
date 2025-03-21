@@ -48,7 +48,8 @@ def predict(image):
     model = TrafficSignDetector().to(device)
     state_dict = torch.load(best_model)
     model.load_state_dict(state_dict)
-    
+
+    model.eval()
 
     image = process(image).unsqueeze(0)
     image = image.to(device)
